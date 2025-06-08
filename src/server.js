@@ -3,7 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import { getEnvVar } from './utils/getEnvVar.js';
 import { ENV_VARS } from './constants/envVars.js';
-import { Contact } from './db/models/contact.js';
+import { getAllContactsController } from './controllers/getAllContactsController.js';
+import { getContactByIdController } from './controllers/getContactByIdController.js';
 
 const PORT = Number(getEnvVar(ENV_VARS.PORT, '3000'));
 
@@ -20,12 +21,8 @@ export const startServer = () => {
     }),
   );
 
-  app.get('/', async (req, res) => {
-    res.json({
-      message: 'Hello Maks',
-      data: await Contact.find(),
-    });
-  });
+  app.get('/contacts', getAllContactsController);
+  app.get('/contacts/:contactId', getContactByIdController);
 
   app.use((req, res, next) => {
     res.status(404).json({
