@@ -1,14 +1,25 @@
 import { Contact } from '../db/models/contact.js';
 import createHttpError from 'http-errors';
+import { createPaginationMetaData } from '../utils/createPaginationMetaData.js';
 
-export const getAllContacts = async () => {
-  const contacts = await Contact.find();
-  return contacts;
+export const getAllContacts = async ({ page, perPage, sortOrder, sortBy }) => {
+  const offset = (page - 1) * perPage;
+  const field = sortBy || 'name';
+  const order = sortOrder === 'desc' ? -1 : 1;
+
+  const [contacts, contactsCount] = await Promise.all([
+    Contact.find()
+      .skip(offset)
+      .limit(perPage)
+      .sort({ [field]: order }),
+    Contact.find().countDocuments(),
+  ]);
+  const metaData = createPaginationMetaData(page, perPage, contactsCount);
+  return { contacts, ...metaData };
 };
 
 export const getContactById = async (contactId) => {
   const contact = await Contact.findById(contactId);
-
   if (!contact) {
     throw createHttpError(404, 'Contact not found');
   }
