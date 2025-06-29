@@ -1,20 +1,34 @@
 import { Contact } from '../db/models/contact.js';
 import createHttpError from 'http-errors';
 import { createPaginationMetaData } from '../utils/createPaginationMetaData.js';
+import { getSortParams } from '../utils/getSortParams.js';
 
-export const getAllContacts = async ({ page, perPage, sortOrder, sortBy }) => {
+export const getAllContacts = async ({
+  page,
+  perPage,
+  sortOrder,
+  sortBy,
+  filter = {},
+}) => {
   const offset = (page - 1) * perPage;
-  const field = sortBy || 'name';
-  const order = sortOrder === 'desc' ? -1 : 1;
+  const { field, order } = getSortParams(sortOrder, sortBy);
+
+  const contactsQuery = Contact.find()
+    .skip(offset)
+    .limit(perPage)
+    .sort({ [field]: order });
+
+  if (filter.contactType) {
+    contactsQuery.where('contactType').equals(filter.contactType);
+  }
 
   const [contacts, contactsCount] = await Promise.all([
-    Contact.find()
-      .skip(offset)
-      .limit(perPage)
-      .sort({ [field]: order }),
-    Contact.find().countDocuments(),
+    Contact.find().merge(contactsQuery).countDocuments(),
+    contactsQuery,
   ]);
+
   const metaData = createPaginationMetaData(page, perPage, contactsCount);
+
   return { contacts, ...metaData };
 };
 
