@@ -8,23 +8,23 @@ export const getAllContacts = async ({
   perPage,
   sortOrder,
   sortBy,
-  filter = {},
+  filter,
 }) => {
   const offset = (page - 1) * perPage;
   const { field, order } = getSortParams(sortOrder, sortBy);
-
-  const contactsQuery = Contact.find()
-    .skip(offset)
-    .limit(perPage)
-    .sort({ [field]: order });
+  const contactsFilter = Contact.find();
 
   if (filter.contactType) {
-    contactsQuery.where('contactType').equals(filter.contactType);
+    contactsFilter.where('contactType').equals(filter.contactType);
   }
 
   const [contacts, contactsCount] = await Promise.all([
-    Contact.find().merge(contactsQuery).countDocuments(),
-    contactsQuery,
+    Contact.find()
+      .merge(contactsFilter)
+      .skip(offset)
+      .limit(perPage)
+      .sort({ [field]: order }),
+    Contact.find().merge(contactsFilter).countDocuments(),
   ]);
 
   const metaData = createPaginationMetaData(page, perPage, contactsCount);

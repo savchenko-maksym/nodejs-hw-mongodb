@@ -11,8 +11,8 @@ const parseContactType = (contactType) => {
 };
 
 export const parseFilterParams = (query) => {
-  const { contactType } = query;
-  const parsedContactType = parseContactType(contactType);
+  const { type } = query;
+  const parsedContactType = parseContactType(type);
   return {
     contactType: parsedContactType,
   };
