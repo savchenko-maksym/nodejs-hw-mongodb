@@ -18,6 +18,10 @@ export const getAllContacts = async ({
     contactsFilter.where('contactType').equals(filter.contactType);
   }
 
+  if (filter.userId) {
+    contactsFilter.where('userId').equals(filter.userId);
+  }
+
   const [contacts, contactsCount] = await Promise.all([
     Contact.find()
       .merge(contactsFilter)
@@ -32,8 +36,8 @@ export const getAllContacts = async ({
   return { contacts, ...metaData };
 };
 
-export const getContactById = async (contactId) => {
-  const contact = await Contact.findById(contactId);
+export const getContactById = async (contactId, userId) => {
+  const contact = await Contact.findOne({ _id: contactId, userId });
   if (!contact) {
     throw createHttpError(404, 'Contact not found');
   }
@@ -46,18 +50,22 @@ export const createContact = async (payload) => {
   return contact;
 };
 
-export const updateContact = async (contactId, payload) => {
-  const contact = await Contact.findByIdAndUpdate(contactId, payload, {
-    new: true,
-  });
+export const updateContact = async (contactId, payload, userId) => {
+  const contact = await Contact.findOneAndUpdate(
+    { _id: contactId, userId },
+    payload,
+    {
+      new: true,
+    },
+  );
   if (!contact) {
     throw createHttpError(404, 'Contact not found');
   }
   return contact;
 };
 
-export const deleteContactById = async (contactId) => {
-  const contact = await Contact.findByIdAndDelete(contactId);
+export const deleteContactById = async (contactId, userId) => {
+  const contact = await Contact.findOneAndDelete({ _id: contactId, userId });
   if (!contact) {
     throw createHttpError(404, 'Contact not found');
   }
