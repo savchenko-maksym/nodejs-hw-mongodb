@@ -8,6 +8,7 @@ import {
 import { parseFilterParams } from '../utils/parseFilterParams.js';
 
 import { parsePaginationParams } from '../utils/parsePagination.js';
+import { saveFile } from '../utils/saveFile.js';
 
 export const getAllContactsController = async (req, res, next) => {
   const { page, perPage } = parsePaginationParams(req.query);
@@ -40,10 +41,19 @@ export const getContactByIdController = async (req, res, next) => {
 };
 
 export const createContactController = async (req, res) => {
+  const photo = req.file;
+  let photoUrl;
+
+  if (photo) {
+    photoUrl = await saveFile(photo);
+  }
+
   const contact = await createContact({
     ...req.body,
     userId: req.user._id,
+    ...(photoUrl && { photo: photoUrl }),
   });
+
   return res.json({
     status: 201,
     message: 'Successfully created a contact!',
@@ -53,7 +63,16 @@ export const createContactController = async (req, res) => {
 
 export const patchContactController = async (req, res) => {
   const { contactId } = req.params;
-  const contact = await updateContact(contactId, req.body, req.user._id);
+  const photo = req.file;
+
+  const photoUrl = await saveFile(photo);
+
+  const contact = await updateContact(
+    contactId,
+    { ...req.body, ...(photoUrl && { photo: photoUrl }) },
+    req.user._id,
+  );
+
   return res.json({
     status: 200,
     message: 'Successfully patched a contact!',

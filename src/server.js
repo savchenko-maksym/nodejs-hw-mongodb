@@ -7,6 +7,7 @@ import { notFoundHandler } from './middlewares/notFoundHandler.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import router from './routers/index.js';
 import cookieParser from 'cookie-parser';
+import { PERMANENT_UPLOAD_DIR } from './constants/paths.js';
 
 const PORT = Number(getEnvVar(ENV_VARS.PORT, '3000'));
 
@@ -26,6 +27,8 @@ export const startServer = () => {
     }),
   );
   app.use(cookieParser());
+
+  app.use('/uploads', express.static(PERMANENT_UPLOAD_DIR));
 
   app.use(router);
 
