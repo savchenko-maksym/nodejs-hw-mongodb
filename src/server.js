@@ -8,6 +8,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import router from './routers/index.js';
 import cookieParser from 'cookie-parser';
 import { PERMANENT_UPLOAD_DIR } from './constants/paths.js';
+import { swaggerDocs } from './middlewares/swaggerDocs.js';
 
 const PORT = Number(getEnvVar(ENV_VARS.PORT, '3000'));
 
@@ -27,6 +28,8 @@ export const startServer = () => {
     }),
   );
   app.use(cookieParser());
+
+  app.use('/api-docs', swaggerDocs());
 
   app.use('/uploads', express.static(PERMANENT_UPLOAD_DIR));
 
